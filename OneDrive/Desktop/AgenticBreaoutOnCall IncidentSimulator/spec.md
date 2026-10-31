@@ -75,3 +75,34 @@ Uygulama girişinde kullanıcıdan alınan 3 temel parametreye göre senaryo din
  │                                │
  ▼                                ▼
 [İyi Son: Sistem Güvende]   [Kötü Son: KVKK İhlali]
+# AgenticBreakout: On-Call Incident Simulator (v2.0)
+*SE Primer - ONNX Tabanlı Dinamik Kriz & Mimari Simülatörü*
+
+---
+
+## 1. Model Gereksinimi & Amaç
+v1'deki sabit kural motoru yerine; oyuncunun karar süresi, önceki hataları ve sahne seviyesine bakarak oyuncunun ipucuna / müdahaleye ihtiyacı olup olmadığını kestiren küçük dikey bir ML modeli (`sklearn -> ONNX`) kullanılacaktır[cite: 2, 3].
+
+## 2. Model Kabul Eşiği (Eval Gate - Altın Standart)
+> **Kritik Kurallar:** Bu eşik eğitim çalıştırılmadan ÖNCE tanımlanmıştır. Eşiği geçemeyen model artefaktı (`model.onnx`) paketlenmez ve yayınlanmaz.
+
+* **Hedef Değişken:** `ipucu_gerekti` (0: İpucu Verilmez, 1: Tutor İpucu Verir)
+* **Kabul Eşiği (Accuracy):** `>= 0.80` (Model doğruluğu en az %80 olmalıdır).
+* **Parite Hata Toleransı:** Tarayıcı (ONNX Runtime Web) ile Python Oracle arasındaki fark $|\Delta| < 1e-4$ ($10^{-4}$) olmalıdır[cite: 5, 7].
+
+## 3. Kabul Örnekleri (Acceptance Criteria)
+
+### Senaryo 6: Dinamik Model Kararıyla İpucu Tetikleme (v2)
+* **Given** Oyuncu 2. sahnede `karar_suresi_sn = 45.0`, `onceki_yanlis_sayisi = 2` değerlerine sahip olduğunda,
+* **When** Model `p(ipucu_gerekti) >= 0.50` olasılığı hesapladığında,
+* **Then** Arayüzde Sokratik Tutor otomatik belirmeli ve süre baskısı hafifletilmelidir[cite: 3].
+
+### Senaryo 7: Model Kabul Eşiği Altında Kalırsa Dağıtım Durdurulur (v2)
+* **Given** `train.py` çalıştırıldığında eğitilen modelin test seti doğruluğu `0.75` (eşik `< 0.80`) çıktığında,
+* **When** Eval kontrolü yapıldığında,
+* **Then** Script hata (`ValueError`) vererek sonlanmalı ve `model.onnx` dosyası oluşturulmamalıdır[cite: 6].
+
+### Senaryo 8: Diferansiyel Parite Testi Geçerliliği (v2)
+* **Given** 5 adet referans test girdisi `tests/parite.json` dosyasında tanımlandığında,
+* **When** Arayüzdeki `onnxruntime-web` çıkarımı ile Python `tests/parite.py` çıkarımı karşılaştırıldığında,
+* **Then** Aradaki fark tüm örnekler için `1e-4`'ten küçük olmalıdır[cite: 5, 7].

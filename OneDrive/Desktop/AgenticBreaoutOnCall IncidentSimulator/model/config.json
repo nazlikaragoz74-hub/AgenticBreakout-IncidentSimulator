@@ -1,0 +1,22 @@
+{
+  "model_name": "AgenticBreakout-HintPredictor",
+  "version": "v2.0",
+  "framework": "scikit-learn -> ONNX",
+  "features": [
+    "seviye",
+    "karar_suresi_sn",
+    "onceki_yanlis_sayisi",
+    "ipucu_sayisi",
+    "sahne_no"
+  ],
+  "target": "ipucu_gerekti",
+  "threshold": 0.5,
+  "eval_metrics": {
+    "accuracy": 1.0,
+    "threshold_passed": true
+  },
+  "classes": [
+    0,
+    1
+  ]
+}
